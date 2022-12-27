@@ -1,0 +1,13 @@
+
+body{
+    margin: 0;
+    padding: 0;  
+}
+
+.css-1n4twyu-MuiInputBase-input-MuiOutlinedInput-input {
+    font-size: 12px !important;
+}
+html {
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}

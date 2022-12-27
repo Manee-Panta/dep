@@ -1,0 +1,28 @@
+{
+  "tableData": [
+    {
+      "name": "Software Development",
+      "user": [
+        "Manita",
+        "Kabita",
+        "Sumina"
+      ],
+      "id": 1
+    },
+    {
+      "name": "Frontend Development",
+      "user": [],
+      "id": 2
+    },
+    {
+      "name": "QA",
+      "user": [],
+      "id": 3
+    },
+    {
+      "name": "Backend Developer",
+      "user": [],
+      "id": 4
+    }
+  ]
+}
