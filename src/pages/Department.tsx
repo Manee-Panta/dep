@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Footer } from "./Footer";
-import Navbar from "./Navbar";
+import { Footer } from "../components/Footer";
+import Navbar from "../components/Navbar";
 import {
   Box,
   Typography,
@@ -11,22 +11,14 @@ import {
   IconButton,
   InputBase,
   Button,
-  TableContainer,
-  Table,
-  TableRow,
-  TableBody,
-  TableHead,
-  TableCell,
-  Checkbox,
   Modal,
+  Alert,
 } from "@mui/material";
 
-import SearchIcon from "@mui/icons-material/Search";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Search, Edit, Delete, ArrowDropDown, Rowing } from "@mui/icons-material";
 import { customStyle } from "../style/Custom";
 import baseurl from "../BaseUrl";
+import { DataGrid, GridRowParams } from "@mui/x-data-grid";
 
 type DepartmentProps = {
   id?: number;
@@ -34,6 +26,10 @@ type DepartmentProps = {
   user?: string[];
   value?: string;
 };
+
+function getUserNo(params: any) {
+  return `${params.row.user.length}`;
+}
 const Department = (props: DepartmentProps) => {
   const [department, setDepartment] = useState({
     name: "",
@@ -41,7 +37,8 @@ const Department = (props: DepartmentProps) => {
   });
 
   const [data, setData] = useState([]);
-  // const[editDep, setEditDep]=useState('')
+  const [noData, setNoData] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
   const [editid, setEditId] = useState<number>(0);
   const [open, setOpen] = useState(false);
   const [editopen, setEditOpen] = useState(false);
@@ -89,19 +86,25 @@ const Department = (props: DepartmentProps) => {
         })
       : alert("Please enter name");
   };
-  const deleteDepartment = (id: number) => {
-    fetch(`${baseurl}/` + id, {
-      method: "DELETE",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    }).then((resp) => {
-      resp.json().then((result) => {
-        // console.log(result);
-        displayDepartment();
+  const deleteDepartment = (id: any) => {
+
+    if (data.find((item: any) => item.id === id && item.user.length === 0)) {
+      fetch(`${baseurl}/` + id, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }).then((resp) => {
+        resp.json().then((result) => {
+          // console.log(result);
+          displayDepartment();
+          setDeleteError(false);
+        });
       });
-    });
+    } else {
+      setDeleteError(true);
+    }
   };
   const update = (editid: number) => {
     department.name
@@ -128,10 +131,29 @@ const Department = (props: DepartmentProps) => {
     setEditOpen(true);
     setEditId(id);
   };
+  function searchData(key: string) {
+    fetch(`${baseurl}/?q=` + key).then((resp) => {
+      resp.json().then((result) => {
+        // console.log("result" + result);
+        if (result.length > 0) {
+          setData(result);
+          setNoData(false);
+        } else {
+          setNoData(true);
+        }
+      });
+    });
+  }
 
   return (
     <div>
       <Navbar />
+      {noData?  <Alert severity="error">Data not Found</Alert>:''}
+      {deleteError ? (
+        <Alert severity="warning" onClose={() => {setDeleteError(false)}}>Sorry !!! You can't delete this</Alert>
+      ) : (
+        ""
+      )}
       <div>
         <Box sx={{ border: "1px solid #BABABA" }}>
           <Breadcrumbs aria-label="breadcrumb">
@@ -153,31 +175,33 @@ const Department = (props: DepartmentProps) => {
           </Breadcrumbs>
         </Box>
 
-        <Box sx={{ py: 3, display: "flex" }}>
+        <Box sx={{ py: 3, display: { md: "flex" } }}>
           <Paper
             component="form"
             sx={{
+              display: { xs: "block", md: "flex" },
               flexGrow: 1,
               p: "0 2px",
-              display: "flex",
+              // border:'2px solid green',
               alignItems: "center",
-              width: " 30px",
+              width: " 300px",
               ml: 3,
               border: "1px solid #BABABA",
               height: "35px",
             }}
           >
             <InputBase
-              sx={{ ml: 1, flex: 1 }}
+              sx={{ p: 1, flex: 1 }}
               placeholder="Search"
               inputProps={{ "aria-label": "search" }}
+              onChange={(e) => searchData(e.target.value)}
             />
             <IconButton
               type="button"
               sx={{ p: "10px", color: "#18A0FB;" }}
               aria-label="search"
             >
-              <SearchIcon />
+              <Search />
             </IconButton>
           </Paper>
           <Box sx={{ flexGrow: 1 }}>
@@ -193,7 +217,7 @@ const Department = (props: DepartmentProps) => {
             >
               <Button
                 variant="outlined"
-                endIcon={<ArrowDropDownIcon />}
+                endIcon={<ArrowDropDown />}
                 sx={customStyle.button}
               >
                 More Action
@@ -248,12 +272,11 @@ const Department = (props: DepartmentProps) => {
                   <Typography
                     display={"flex"}
                     variant="body2"
-                  
                     style={{ justifyContent: "center", alignItems: "center" }}
                   >
                     User :
                     {data.map((item: any) =>
-                      item.id === editid ? item.user + " " : ''
+                      item.id === editid ? item.user + " " : ""
                     )}
                   </Typography>
 
@@ -304,60 +327,62 @@ const Department = (props: DepartmentProps) => {
           style={{
             padding: "0 15px",
             alignItems: "center",
+            height: "500px",
           }}
         >
-          <TableContainer component={Paper}>
-            <Table
-              arial-label="simple table"
-              sx={{ border: "1px solid #BABABA" }}
-            >
-              <TableHead
-                style={{
-                  fontSize: "4px",
-                  fontWeight: "bold",
-                }}
-              >
-                <TableCell>
-                  <Checkbox size="small" />
-                </TableCell>
-                <TableCell>SN</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell sx={{ textAlign: "right" }}>No of Users</TableCell>
-                <TableCell sx={{ textAlign: "center" }}>Action</TableCell>
-              </TableHead>
-              <TableBody>
-                {data.map((row: any, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Checkbox size="small" />
-                    </TableCell>
-                    <TableCell>{row["id"]}</TableCell>
-                    <TableCell>{row["name"]}</TableCell>
-                    <TableCell sx={{ textAlign: "right" }}>
-                      {row.user?.length}
-                    </TableCell>
+          <DataGrid
+            rows={data}
+            getRowId={(row: any) => row.id}
+            columns={[
+              { field: "id", headerName: "ID", width: 90,},
+              {
+                field: "name",
+                headerName: "Name",
+                minWidth: 200,
+                flex: 1,
+                editable: false,
+                sortable: true,
+              },
+              {
+                field: "user",
+                headerName: "No of User",
+                width: 90,
+                valueGetter: getUserNo,
+              },
+              {
+                field: "action",
+                headerName: "Action",
+                width: 120,
 
-                    <TableCell>
-                      <Stack direction="row" sx={{ justifyContent: "center" }}>
-                        <IconButton
-                          sx={customStyle.iconButton}
-                          onClick={() => editDepartment(row["id"])}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          sx={customStyle.iconButton}
-                          onClick={() => deleteDepartment(row["id"])}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                renderCell: ({ row }: Partial<GridRowParams>) => (
+                  <>
+                    <IconButton
+                      sx={customStyle.iconButton}
+                      onClick={() => editDepartment(row["id"])}
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      sx={customStyle.iconButton}
+                      onClick={() => deleteDepartment(row["id"])}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </>
+                ),
+              },
+            ]}
+            pageSize={7}
+            rowsPerPageOptions={[7]}
+            checkboxSelection
+            disableSelectionOnClick
+            experimentalFeatures={{ newEditingApi: true }}
+            // initialState={{
+            //   sorting: {
+            //     sortModel: [{ field: "name", sort: "asc" }],
+            //   },
+            // }}
+          />
         </div>
         {/* Table End  */}
       </div>

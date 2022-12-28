@@ -11,16 +11,21 @@
     },
     {
       "name": "Frontend Development",
-      "user": [],
+      "user": [
+        "Manita",
+        "Kabita",
+        "Sumina",
+        "Sumina"
+      ],
       "id": 2
     },
     {
-      "name": "QA",
+      "name": "Backend Developer",
       "user": [],
       "id": 3
     },
     {
-      "name": "Backend Developer",
+      "name": "QA",
       "user": [],
       "id": 4
     }

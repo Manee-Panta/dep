@@ -1,13 +1,11 @@
-import React from 'react';
-import './App.css';
-import Department from './components/Department';
-
+import React from "react";
+import "./App.css";
+import Department from "./pages/Department";
 
 function App() {
   return (
     <div className="App">
-<Department/>
-
+      <Department />
     </div>
   );
 }
