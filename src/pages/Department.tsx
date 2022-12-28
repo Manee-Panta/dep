@@ -13,6 +13,7 @@ import {
   Button,
   Modal,
   Alert,
+  Snackbar ,
 } from "@mui/material";
 
 import { Search, Edit, Delete, ArrowDropDown, Rowing } from "@mui/icons-material";
@@ -39,6 +40,7 @@ const Department = (props: DepartmentProps) => {
   const [data, setData] = useState([]);
   const [noData, setNoData] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [editid, setEditId] = useState<number>(0);
   const [open, setOpen] = useState(false);
   const [editopen, setEditOpen] = useState(false);
@@ -78,6 +80,7 @@ const Department = (props: DepartmentProps) => {
           resp.json().then((result) => {
             // console.log(result)
             displayDepartment();
+            setOpen(false)
             setDepartment({
               ...department,
               name: "",
@@ -99,10 +102,12 @@ const Department = (props: DepartmentProps) => {
         resp.json().then((result) => {
           // console.log(result);
           displayDepartment();
+          setDeleteSuccess(true)
           setDeleteError(false);
         });
       });
     } else {
+      setDeleteSuccess(false)
       setDeleteError(true);
     }
   };
@@ -119,6 +124,7 @@ const Department = (props: DepartmentProps) => {
           resp.json().then((result) => {
             // console.log(result)
             displayDepartment();
+            setEditOpen(false)
             setDepartment({
               ...department,
               name: "",
@@ -154,6 +160,12 @@ const Department = (props: DepartmentProps) => {
       ) : (
         ""
       )}
+      
+       <Snackbar open={deleteSuccess} autoHideDuration={6000} > 
+        <Alert onClose={() => {setDeleteSuccess(false)}} severity="success" variant="filled" sx={{ width: '100%' }}>
+        Deleted Successfully
+        </Alert>
+      </Snackbar>
       <div>
         <Box sx={{ border: "1px solid #BABABA" }}>
           <Breadcrumbs aria-label="breadcrumb">
@@ -327,7 +339,7 @@ const Department = (props: DepartmentProps) => {
           style={{
             padding: "0 15px",
             alignItems: "center",
-            height: "500px",
+            height: "450px",
           }}
         >
           <DataGrid
