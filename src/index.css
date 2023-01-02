@@ -2,6 +2,7 @@
 body{
     margin: 0;
     padding: 0;  
+   
 }
 
 .css-1n4twyu-MuiInputBase-input-MuiOutlinedInput-input {
@@ -11,3 +12,21 @@ html {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
 }
+::-webkit-scrollbar { 
+    width: 0.1em;
+    height: 0.4rem;
+   
+ }
+ 
+*::-webkit-scrollbar-track {
+    background: rgb(206, 206, 208);
+    border-radius: 2rem !important;
+    
+  }
+  
+  ::-webkit-scrollbar-thumb{
+    background-color: rgb(149, 141, 141);
+    width: 10px;
+    border-radius: 0.3rem;
+    
+  }

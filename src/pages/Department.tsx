@@ -13,13 +13,16 @@ import {
   Button,
   Modal,
   Alert,
-  Snackbar ,
+  Snackbar,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 
-import { Search, Edit, Delete, ArrowDropDown, Rowing } from "@mui/icons-material";
+import { Search, Edit, Delete, ArrowDropDown } from "@mui/icons-material";
 import { customStyle } from "../style/Custom";
 import baseurl from "../BaseUrl";
-import { DataGrid, GridRowParams } from "@mui/x-data-grid";
+import { DataGrid, GridRowParams, GridSelectionModel } from "@mui/x-data-grid";
+
 
 type DepartmentProps = {
   id?: number;
@@ -36,6 +39,8 @@ const Department = (props: DepartmentProps) => {
     name: "",
     user: [],
   });
+  const [selectionModel, setSelectionModel] =
+    React.useState<GridSelectionModel>([]);
 
   const [data, setData] = useState([]);
   const [noData, setNoData] = useState(false);
@@ -47,6 +52,12 @@ const Department = (props: DepartmentProps) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleEditClose = () => setEditOpen(false);
+  const [menu, setMenu] = React.useState<null | HTMLElement>(null);
+  const menuopen = Boolean(menu);
+  const handleBulkAction = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setMenu(event.currentTarget);
+  }
+ 
   const getDepartment = (e: any) => {
     setDepartment(() => {
       return {
@@ -80,7 +91,7 @@ const Department = (props: DepartmentProps) => {
           resp.json().then((result) => {
             // console.log(result)
             displayDepartment();
-            setOpen(false)
+            setOpen(false);
             setDepartment({
               ...department,
               name: "",
@@ -89,8 +100,7 @@ const Department = (props: DepartmentProps) => {
         })
       : alert("Please enter name");
   };
-  const deleteDepartment = (id: any) => {
-
+  const deleteDepartment = (id: number) => {
     if (data.find((item: any) => item.id === id && item.user.length === 0)) {
       fetch(`${baseurl}/` + id, {
         method: "DELETE",
@@ -102,13 +112,43 @@ const Department = (props: DepartmentProps) => {
         resp.json().then((result) => {
           // console.log(result);
           displayDepartment();
-          setDeleteSuccess(true)
+          setDeleteSuccess(true);
           setDeleteError(false);
         });
       });
     } else {
-      setDeleteSuccess(false)
+      setDeleteSuccess(false);
       setDeleteError(true);
+    }
+  };
+  const handleBulkDelete = () => {
+    //   console.log(selectionModel)
+    for (let i in selectionModel) {
+      if (
+        data.find(
+          (item: any) => item.id === selectionModel[i] && item.user.length === 0
+        )
+      ) {
+        fetch(`${baseurl}/${selectionModel[i]}`, {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }).then((resp) => {
+          resp.json().then((result) => {
+            // console.log(result);
+            displayDepartment();
+            if (result) {
+              setDeleteSuccess(true);
+              setDeleteError(false);
+            }
+          });
+        });
+      } else {
+        setDeleteSuccess(false);
+        setDeleteError(true);
+      }
     }
   };
   const update = (editid: number) => {
@@ -124,7 +164,7 @@ const Department = (props: DepartmentProps) => {
           resp.json().then((result) => {
             // console.log(result)
             displayDepartment();
-            setEditOpen(false)
+            setEditOpen(false);
             setDepartment({
               ...department,
               name: "",
@@ -154,16 +194,36 @@ const Department = (props: DepartmentProps) => {
   return (
     <div>
       <Navbar />
-      {noData?  <Alert severity="error">Data not Found</Alert>:''}
+      {noData ? <Alert severity="error">Data not Found</Alert> : ""}
       {deleteError ? (
-        <Alert severity="warning" onClose={() => {setDeleteError(false)}}>Sorry !!! You can't delete this</Alert>
+        <Alert
+          severity="warning"
+          onClose={() => {
+            setDeleteError(false);
+          }}
+        >
+          Sorry !!! You can't delete department with user.
+        </Alert>
       ) : (
         ""
       )}
-      
-       <Snackbar open={deleteSuccess} autoHideDuration={6000} > 
-        <Alert onClose={() => {setDeleteSuccess(false)}} severity="success" variant="filled" sx={{ width: '100%' }}>
-        Deleted Successfully
+
+      <Snackbar
+        open={deleteSuccess}
+        autoHideDuration={2000}
+        onClose={() => {
+          setDeleteSuccess(false);
+        }}
+      >
+        <Alert
+          onClose={() => {
+            setDeleteSuccess(false);
+          }}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Deleted Successfully
         </Alert>
       </Snackbar>
       <div>
@@ -231,10 +291,21 @@ const Department = (props: DepartmentProps) => {
                 variant="outlined"
                 endIcon={<ArrowDropDown />}
                 sx={customStyle.button}
+                onClick={handleBulkAction}
               >
                 More Action
               </Button>
-
+              <Menu
+                id="basic-menu"
+                anchorEl={menu}
+                open={menuopen}
+                onClose={() => setMenu(null)}
+                MenuListProps={{
+                  "aria-labelledby": "basic-button",
+                }}
+              >
+                <MenuItem onClick={handleBulkDelete}>Delete</MenuItem>
+              </Menu>
               <Button
                 variant="outlined"
                 sx={customStyle.button}
@@ -244,7 +315,7 @@ const Department = (props: DepartmentProps) => {
               </Button>
               <Modal open={open} onClose={handleClose}>
                 <Box sx={customStyle.modal}>
-                  <Typography variant="subtitle1" component="h2">
+                  <Typography variant="inherit" style={{fontWeight:'bold'}} >
                     Enter Department Name
                   </Typography>
                   <TextField
@@ -287,12 +358,13 @@ const Department = (props: DepartmentProps) => {
                     style={{ justifyContent: "center", alignItems: "center" }}
                   >
                     User :
-                    {data.map((item: any) =>
-                      item.id === editid ? item.user + " " : ""
-                    )}
+                   
                   </Typography>
-
-                  <Typography component="h2" variant="subtitle1">
+                {data.map((item: any) =>
+                      item.id === editid ? <Typography  variant="caption"
+                      style={{overflow:'auto', padding:'5px' }}>{item.user +''}</Typography> : ""
+                    )}
+                  <Typography style={{ marginTop:'5px',fontWeight:'bold',}} variant="inherit">
                     Edit Department Name
                   </Typography>
 
@@ -303,9 +375,9 @@ const Department = (props: DepartmentProps) => {
                     size="small"
                     margin="normal"
                     required
-                    defaultValue={data.map((person: any) =>
-                      person.id === editid ? person.name : ""
-                    )}
+                    // defaultValue={data.map((person: any) =>
+                    //   person.id === editid ? person.name : ""
+                    // )}
                   />
                   <Stack
                     direction="row"
@@ -346,7 +418,7 @@ const Department = (props: DepartmentProps) => {
             rows={data}
             getRowId={(row: any) => row.id}
             columns={[
-              { field: "id", headerName: "ID", width: 90,},
+              { field: "id", headerName: "ID", width: 90 },
               {
                 field: "name",
                 headerName: "Name",
@@ -387,6 +459,11 @@ const Department = (props: DepartmentProps) => {
             pageSize={7}
             rowsPerPageOptions={[7]}
             checkboxSelection
+            onSelectionModelChange={(newSelectionModel) => {
+              console.log(newSelectionModel);
+              setSelectionModel(newSelectionModel);
+            }}
+            selectionModel={selectionModel}
             disableSelectionOnClick
             experimentalFeatures={{ newEditingApi: true }}
             // initialState={{
